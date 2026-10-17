@@ -1,5 +1,4 @@
 package com.reasoningtest;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
@@ -73,13 +72,11 @@ public class GeminiController {
             JsonNode root = mapper.readTree(resp);
             String text = root.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
             text = text.replace("```json", "").replace("```", "").trim();
-
             JsonNode arr = mapper.readTree(text);
             if (!arr.isArray() || arr.size() == 0) {
                 return error(502, "Gemini ne sahi format me jawab nahi diya, dobara try karo");
             }
             return ResponseEntity.ok(mapper.writeValueAsString(arr));
-
         } catch (HttpStatusCodeException e) {
             int code = e.getStatusCode().value();
             String msg;
@@ -92,7 +89,6 @@ public class GeminiController {
             return error(500, "Questions nahi ban paye, dobara try karo");
         }
     }
-
     private ResponseEntity<String> error(int status, String msg) {
         String json;
         try {
