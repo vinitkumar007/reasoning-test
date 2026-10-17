@@ -1,4 +1,3 @@
-Geminicontroller · JAVA
 package com.reasoningtest;
  
 import com.fasterxml.jackson.databind.JsonNode;
