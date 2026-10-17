@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Panel</title><link rel="stylesheet" th:href="@{/style.css}"></head>
+<body><div class="wrap">
+  <div class="top">
+    <h1>Admin Panel</h1>
+    <div><a th:href="@{/}">Test page</a> | <a th:href="@{/admin/logout}">Logout</a></div>
+  </div>
+
+  <div class="card">
+    <h2>Photo se Question Nikalo</h2>
+    <p>Question ki photo choose karo, text neeche wale form me apne aap bhar jayega. Save karne se pehle ek baar check kar lena.</p>
+    <input type="file" id="qimg" accept="image/*">
+    <label>Language</label>
+    <select id="ocrLang">
+      <option value="eng">English</option>
+      <option value="eng+hin">English + Hindi</option>
+    </select>
+    <button type="button" id="ocrBtn" onclick="readImage()">remove text </button>
+    <p id="ocrStatus"></p>
+    <img id="preview" style="max-width:100%; margin-top:10px; display:none; border-radius:6px;">
+  </div>
+
+  <div class="card">
+    <h2>add new question </h2>
+    <form method="post" th:action="@{/admin/add}">
+      <label>Question</label>
+      <textarea id="qtext" name="text" rows="3" required></textarea>
+      <input type="text" id="optA" name="optionA" placeholder="Option A" required>
+      <input type="text" id="optB" name="optionB" placeholder="Option B" required>
+      <input type="text" id="optC" name="optionC" placeholder="Option C" required>
+      <input type="text" id="optD" name="optionD" placeholder="Option D" required>
+      <label>Sahi option</label>
+      <select name="correctOption">
+        <option value="1">A</option><option value="2">B</option>
+        <option value="3">C</option><option value="4">D</option>
+      </select>
+      <label>Time limit (seconds)</label>
+      <input type="number" name="timeLimit" value="30" min="5" required>
+      <button type="submit">Add Question</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Questions (<span th:text="${#lists.size(questions)}"></span>)</h2>
+    <table>
+      <tr><th>ID</th><th>Question</th><th>Sahi</th><th>Time</th><th></th></tr>
+      <tr th:each="q : ${questions}">
+        <td th:text="${q.id}"></td>
+        <td th:text="${q.text}"></td>
+        <td th:text="${q.correctOption == 1 ? 'A' : q.correctOption == 2 ? 'B' : q.correctOption == 3 ? 'C' : 'D'}"></td>
+        <td th:text="${q.timeLimit} + 's'"></td>
+        <td>
+          <form method="post" th:action="@{/admin/delete/{id}(id=${q.id})}" onsubmit="return confirm('Delete karna hai?')">
+            <button class="red" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Students  Attempts</h2>
+    <table>
+      <tr><th>Naam</th><th>Time</th><th></th></tr>
+      <tr th:each="a : ${attempts}">
+        <td th:text="${a.studentName}"></td>
+        <td th:text="${#temporals.format(a.startedAt, 'dd MMM yyyy, HH:mm')}"></td>
+        <td><a th:href="@{/result/{id}(id=${a.id})}">Result dekho</a></td>
+      </tr>
+    </table>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+  document.getElementById('qimg').addEventListener('change', function () {
+    var f = this.files[0];
+    var img = document.getElementById('preview');
+    if (f) { img.src = URL.createObjectURL(f); img.style.display = 'block'; }
+  });
+
+  function readImage() {
+    var file = document.getElementById('qimg').files[0];
+    var status = document.getElementById('ocrStatus');
+    var btn = document.getElementById('ocrBtn');
+    if (!file) { status.textContent = 'Pehle photo choose karo'; return; }
+    if (typeof Tesseract === 'undefined') { status.textContent = 'OCR library load nahi hui, internet check karo'; return; }
+
+    btn.disabled = true;
+    status.textContent = 'Padh raha hu...';
+    Tesseract.recognize(file, document.getElementById('ocrLang').value, {
+      logger: function (m) {
+        if (m.status === 'recognizing text') status.textContent = 'Padh raha hu... ' + Math.round(m.progress * 100) + '%';
+      }
+    }).then(function (res) {
+      fillForm(res.data.text);
+      status.textContent = 'Ho gaya. Neeche form check karke Add Question dabao.';
+      btn.disabled = false;
+    }).catch(function () {
+      status.textContent = 'Text nahi nikal paya, saaf photo try karo';
+      btn.disabled = false;
+    });
+  }
+
+  // text me se question aur options (A/B/C/D ya 1/2/3/4) alag karta hai
+  function fillForm(text) {
+    var lines = text.split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l.length > 0; });
+    var optRe = /^\(?([A-Da-d1-4])[\)\.\:]\s*(.+)/;
+    var question = [];
+    var opts = {};
+    var started = false;
+
+    lines.forEach(function (line) {
+      var m = line.match(optRe);
+      if (m) {
+        started = true;
+        var key = m[1].toUpperCase();
+        if ('1234'.indexOf(key) >= 0) key = 'ABCD'.charAt(parseInt(key) - 1);
+        opts[key] = m[2];
+      } else if (!started) {
+        question.push(line);
+      }
+    });
+
+    document.getElementById('qtext').value = question.join(' ');
+    ['A', 'B', 'C', 'D'].forEach(function (k) {
+      if (opts[k]) document.getElementById('opt' + k).value = opts[k];
+    });
+    document.getElementById('qtext').scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+</body></html>

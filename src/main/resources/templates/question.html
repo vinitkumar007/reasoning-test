@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Question</title><link rel="stylesheet" th:href="@{/style.css}"></head>
+<body><div class="wrap"><div class="card">
+  <div class="top">
+    <div>Question <span th:text="${number}"></span> / <span th:text="${total}"></span></div>
+    <div class="timer" id="timer"></div>
+  </div>
+  <h2 th:text="${q.text}"></h2>
+  <form id="f" method="post" th:action="@{/test/{id}/answer(id=${aid})}">
+    <label class="opt"><input type="radio" name="selected" value="1"> <span th:text="${q.optionA}"></span></label>
+    <label class="opt"><input type="radio" name="selected" value="2"> <span th:text="${q.optionB}"></span></label>
+    <label class="opt"><input type="radio" name="selected" value="3"> <span th:text="${q.optionC}"></span></label>
+    <label class="opt"><input type="radio" name="selected" value="4"> <span th:text="${q.optionD}"></span></label>
+    <button type="submit">Agla Question</button>
+    <button type="button" class="grey" onclick="skipQ()">Skip</button>
+  </form>
+</div></div>
+<script th:inline="javascript">
+  var left = /*[[${remaining}]]*/ 30;
+  var timerBox = document.getElementById('timer');
+  var form = document.getElementById('f');
+
+  function show() {
+    timerBox.textContent = left + 's';
+    if (left <= 10) timerBox.classList.add('low');
+  }
+  function skipQ() {
+    var radios = document.getElementsByName('selected');
+    for (var i = 0; i < radios.length; i++) radios[i].checked = false;
+    form.submit();
+  }
+
+  show();
+  var t = setInterval(function () {
+    left--;
+    show();
+    if (left <= 0) {
+      clearInterval(t);
+      skipQ();   // time khatam, auto skip
+    }
+  }, 1000);
+</script>
+</body></html>

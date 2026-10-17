@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reasoning Test</title><link rel="stylesheet" th:href="@{/style.css}"></head>
+<body><div class="wrap">
+  <div class="card">
+    <h1>Reasoning Test</h1>
+    <p>Har question ka alag time hoga. Time khatam hone par question apne aap skip ho jayega.</p>
+    <p class="err" th:if="${param.empty}">Abhi koi question add nahi hai. Pehle admin se question add karwao.</p>
+    <form method="post" th:action="@{/start}">
+      <label>Apna name daal bsdk </label>
+      <input type="text" name="name" required>
+      <button type="submit">Test suru kar or tabahi macha de </button>
+    </form>
+  </div>
+  <a th:href="@{/admin}">Admin Panel</a>
+</div></body></html>
