@@ -17,13 +17,28 @@
       <option value="eng">English</option>
       <option value="eng+hin">English + Hindi</option>
     </select>
-    <button type="button" id="ocrBtn" onclick="readImage()">remove text </button>
+    <button type="button" id="ocrBtn" onclick="readImage()">Text Nikalo</button>
     <p id="ocrStatus"></p>
     <img id="preview" style="max-width:100%; margin-top:10px; display:none; border-radius:6px;">
   </div>
 
   <div class="card">
-    <h2>add new question </h2>
+    <h2>AI se Hard Questions Banao</h2>
+    <p>Topic likho, AI questions bana dega. Har question ke saath "Form me bharo" dabao, phir check karke Add Question karo.</p>
+    <input type="text" id="gTopic" placeholder="Topic, jaise: Blood Relation, Coding-Decoding, Number Series">
+    <label>Kitne questions (1 se 10)</label>
+    <input type="number" id="gCount" value="5" min="1" max="10">
+    <label>Level</label>
+    <select id="gLevel"><option value="Hard">Hard</option><option value="Very Hard">Very Hard</option></select>
+    <label>Language</label>
+    <select id="gLang"><option value="English">English</option><option value="Hindi">Hindi</option></select>
+    <button type="button" id="gBtn" onclick="generateQ()">Questions Banao</button>
+    <p id="gStatus"></p>
+    <div id="gList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Naya Question Add Karo</h2>
     <form method="post" th:action="@{/admin/add}">
       <label>Question</label>
       <textarea id="qtext" name="text" rows="3" required></textarea>
@@ -32,12 +47,12 @@
       <input type="text" id="optC" name="optionC" placeholder="Option C" required>
       <input type="text" id="optD" name="optionD" placeholder="Option D" required>
       <label>Sahi option</label>
-      <select name="correctOption">
+      <select id="qcorrect" name="correctOption">
         <option value="1">A</option><option value="2">B</option>
         <option value="3">C</option><option value="4">D</option>
       </select>
       <label>Time limit (seconds)</label>
-      <input type="number" name="timeLimit" value="30" min="5" required>
+      <input type="number" id="qtime" name="timeLimit" value="30" min="5" required>
       <button type="submit">Add Question</button>
     </form>
   </div>
@@ -61,7 +76,7 @@
   </div>
 
   <div class="card">
-    <h2>Students  Attempts</h2>
+    <h2>Students ke Attempts</h2>
     <table>
       <tr><th>Naam</th><th>Time</th><th></th></tr>
       <tr th:each="a : ${attempts}">
@@ -127,6 +142,80 @@
     ['A', 'B', 'C', 'D'].forEach(function (k) {
       if (opts[k]) document.getElementById('opt' + k).value = opts[k];
     });
+    document.getElementById('qtext').scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+<script>
+  var gen = [];
+
+  function mk(tag, text, css) {
+    var e = document.createElement(tag);
+    if (text) e.textContent = text;
+    if (css) e.style.cssText = css;
+    return e;
+  }
+
+  function generateQ() {
+    var topic = document.getElementById('gTopic').value.trim();
+    var status = document.getElementById('gStatus');
+    var btn = document.getElementById('gBtn');
+    if (!topic) { status.textContent = 'Pehle topic likho'; return; }
+
+    btn.disabled = true;
+    status.textContent = 'Questions ban rahe hain, 20-40 second lag sakte hain...';
+    document.getElementById('gList').innerHTML = '';
+
+    var data = new URLSearchParams();
+    data.append('topic', topic);
+    data.append('count', document.getElementById('gCount').value);
+    data.append('difficulty', document.getElementById('gLevel').value);
+    data.append('language', document.getElementById('gLang').value);
+
+    fetch('/admin/generate', { method: 'POST', body: data })
+      .then(function (r) {
+        return r.json().then(function (j) { return { ok: r.ok, body: j }; });
+      })
+      .then(function (res) {
+        btn.disabled = false;
+        if (!res.ok) { status.textContent = res.body.error || 'Kuch gadbad ho gayi'; return; }
+        gen = res.body;
+        status.textContent = gen.length + ' questions ban gaye. Jawab khud ek baar check kar lena.';
+        showList();
+      })
+      .catch(function () {
+        btn.disabled = false;
+        status.textContent = 'Server se jawab nahi aaya, dobara try karo';
+      });
+  }
+
+  function showList() {
+    var box = document.getElementById('gList');
+    box.innerHTML = '';
+    gen.forEach(function (q, i) {
+      var d = mk('div', '', 'border:1px solid #ddd; border-radius:8px; padding:12px; margin-top:12px;');
+      d.appendChild(mk('b', (i + 1) + '. ' + q.text));
+      d.appendChild(mk('div', 'A) ' + q.optionA, 'margin-top:6px'));
+      d.appendChild(mk('div', 'B) ' + q.optionB));
+      d.appendChild(mk('div', 'C) ' + q.optionC));
+      d.appendChild(mk('div', 'D) ' + q.optionD));
+      d.appendChild(mk('div', 'Sahi jawab: ' + 'ABCD'.charAt((q.correctOption || 1) - 1) + ' | Time: ' + q.timeLimit + 's', 'margin:8px 0; color:#1a8a3b'));
+      var b = mk('button', 'Form me bharo');
+      b.type = 'button';
+      b.onclick = function () { useQ(i); };
+      d.appendChild(b);
+      box.appendChild(d);
+    });
+  }
+
+  function useQ(i) {
+    var q = gen[i];
+    document.getElementById('qtext').value = q.text;
+    document.getElementById('optA').value = q.optionA;
+    document.getElementById('optB').value = q.optionB;
+    document.getElementById('optC').value = q.optionC;
+    document.getElementById('optD').value = q.optionD;
+    document.getElementById('qcorrect').value = q.correctOption;
+    document.getElementById('qtime').value = q.timeLimit;
     document.getElementById('qtext').scrollIntoView({ behavior: 'smooth' });
   }
 </script>
