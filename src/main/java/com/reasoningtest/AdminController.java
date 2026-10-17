@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -16,6 +17,11 @@ public class AdminController {
 
     @Value("${admin.user}") String adminUser;
     @Value("${admin.pass}") String adminPass;
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.initDirectFieldAccess();
+    }
 
     @GetMapping("/login")
     public String loginPage() {
