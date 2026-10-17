@@ -10,5 +10,7 @@ public class Attempt {
     public Long id;
 
     public String studentName;
+    public Long testId;
+    public String testTitle;
     public LocalDateTime startedAt;
 }

@@ -5,6 +5,7 @@
 <body><div class="wrap">
   <div class="card">
     <h1>Result - <span th:text="${name}"></span></h1>
+    <p th:if="${testTitle}" th:text="${testTitle}"></p>
     <div class="stats">
       <div class="stat"><b th:text="${correct} + '/' + ${total}"></b>Sahi</div>
       <div class="stat"><b th:text="${wrong}"></b>Galat</div>
@@ -15,9 +16,9 @@
     </div>
   </div>
   <div class="card">
-    <h2>Question wise report dakh lodu </h2>
+    <h2>Question wise report</h2>
     <table>
-      <tr><th>#</th><th>Question</th><th>your answer</th><th>Sahi jawab</th><th>Time</th><th></th></tr>
+      <tr><th>#</th><th>Question</th><th>Tumhara jawab</th><th>Sahi jawab</th><th>Time</th><th></th></tr>
       <tr th:each="r, i : ${rows}">
         <td th:text="${i.count}"></td>
         <td th:text="${r.text}"></td>
@@ -32,5 +33,5 @@
       </tr>
     </table>
   </div>
-  <a class="btn" th:href="@{/}">dubara test de bsdk </a>
+  <a class="btn" th:href="@{/}">Dobara Test Do</a>
 </div></body></html>

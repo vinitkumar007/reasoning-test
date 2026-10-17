@@ -13,7 +13,7 @@
     <label class="opt"><input type="radio" name="selected" value="2"> <span th:text="${q.optionB}"></span></label>
     <label class="opt"><input type="radio" name="selected" value="3"> <span th:text="${q.optionC}"></span></label>
     <label class="opt"><input type="radio" name="selected" value="4"> <span th:text="${q.optionD}"></span></label>
-    <button type="submit">Agla Question</button>
+    <button type="submit">next Question</button>
     <button type="button" class="grey" onclick="skipQ()">Skip</button>
   </form>
 </div></div>
@@ -38,7 +38,7 @@
     show();
     if (left <= 0) {
       clearInterval(t);
-      skipQ();   // time khatam, auto skip
+      skipQ();   // time over, auto skip
     }
   }, 1000);
 </script>

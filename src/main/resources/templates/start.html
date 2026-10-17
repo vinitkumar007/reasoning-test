@@ -6,11 +6,17 @@
   <div class="card">
     <h1>Reasoning Test</h1>
     <p>Har question ka alag time hoga. Time khatam hone par question apne aap skip ho jayega.</p>
-    <p class="err" th:if="${param.empty}">Abhi koi question add nahi hai. Pehle admin se question add karwao.</p>
     <form method="post" th:action="@{/start}">
-      <label>Apna name daal bsdk </label>
+      <label>Apna naam</label>
       <input type="text" name="name" required>
-      <button type="submit">Test suru kar or tabahi macha de </button>
+
+      <h2>Apna test chuno</h2>
+      <p th:if="${#lists.isEmpty(quizzes)}">Abhi koi test available nahi hai. Admin se test add karwao.</p>
+      <div th:each="t : ${quizzes}" style="border:1px solid #ddd; border-radius:8px; padding:12px; margin-bottom:10px;">
+        <b th:text="${t.title}"></b>
+        <div th:text="${t.count} + ' questions'" style="margin:4px 0 10px; color:#555;"></div>
+        <button type="submit" name="testId" th:value="${t.id}">Shuru Karo</button>
+      </div>
     </form>
   </div>
   <a th:href="@{/admin}">Admin Panel</a>

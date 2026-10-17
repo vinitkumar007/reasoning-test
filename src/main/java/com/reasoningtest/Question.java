@@ -16,4 +16,5 @@ public class Question {
     public String optionD;
     public int correctOption;   // 1 = A, 2 = B, 3 = C, 4 = D
     public int timeLimit;       // seconds
+    public Long testId;         // kaunse test ka question hai
 }

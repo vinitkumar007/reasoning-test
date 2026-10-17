@@ -16,20 +16,36 @@ public class TestController {
     @Autowired QuestionRepo questions;
     @Autowired AttemptRepo attempts;
     @Autowired AnswerRepo answers;
+    @Autowired QuizRepo quizzes;
 
     @GetMapping("/")
-    public String home() {
+    public String home(Model model) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Quiz z : quizzes.findAll()) {
+            long count = questions.countByTestId(z.id);
+            if (count == 0) continue;     // khali test students ko nahi dikhana
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", z.id);
+            m.put("title", z.title);
+            m.put("count", count);
+            list.add(m);
+        }
+        model.addAttribute("quizzes", list);
         return "start";
     }
 
     @PostMapping("/start")
-    public String start(@RequestParam String name, HttpSession session) {
-        List<Long> ids = questions.findAll().stream().map(q -> q.id).collect(Collectors.toList());
-        if (ids.isEmpty()) return "redirect:/?empty";
+    public String start(@RequestParam String name, @RequestParam Long testId, HttpSession session) {
+        Quiz quiz = quizzes.findById(testId).orElse(null);
+        if (quiz == null) return "redirect:/";
+        List<Long> ids = questions.findByTestId(testId).stream().map(q -> q.id).collect(Collectors.toList());
+        if (ids.isEmpty()) return "redirect:/";
         Collections.shuffle(ids);
 
         Attempt a = new Attempt();
         a.studentName = name;
+        a.testId = quiz.id;
+        a.testTitle = quiz.title;
         a.startedAt = LocalDateTime.now();
         attempts.save(a);
 
@@ -127,6 +143,7 @@ public class TestController {
 
         int total = list.size();
         model.addAttribute("name", attempt.studentName);
+        model.addAttribute("testTitle", attempt.testTitle);
         model.addAttribute("total", total);
         model.addAttribute("correct", correct);
         model.addAttribute("wrong", wrong);
